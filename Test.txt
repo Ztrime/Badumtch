@@ -1,18 +1,20 @@
-local targetPosition = Vector3.new(41447, 4, 1089)
-local detectionRadius = 5  -- Trigger radius in studs
-local cooldownTime = 7     -- Time between activations (5 sec wait + some buffer)
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart")
-
+-- Services
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
 
-local teleportPositions = {}
+-- Teleport button coordinates
+local buttonTeleportCoords = Vector3.new(41447, 4, 1156)
 
--- Combine all teleport positions in one list for simplicity
-for _, pos in ipairs({
-    -- teleportPositions1
+-- Detection teleport center and radius
+local detectionCenter = Vector3.new(41447, 4, 1089)
+local detectionRadius = 5
+local waitBeforeTeleport = 5
+local waitBetweenTeleports = 0.02
+
+-- The teleport chain coordinates
+local teleportPositions = {
     Vector3.new(41541, 4, -947),
     Vector3.new(41453, -1, -43303),
     Vector3.new(40024, -1, -85669),
@@ -47,8 +49,6 @@ for _, pos in ipairs({
     Vector3.new(-582720, -1, -1084472),
     Vector3.new(-620102, -1, -1104398),
     Vector3.new(-658191, -1, -1122995),
-
-    -- teleportPositions2
     Vector3.new(-696861, -1, -1140269),
     Vector3.new(-736133, -1, -1156191),
     Vector3.new(-775939, -1, -1170707),
@@ -69,8 +69,6 @@ for _, pos in ipairs({
     Vector3.new(-1402736, -1, -1215172),
     Vector3.new(-1444192, -1, -1206406),
     Vector3.new(-1485317, -1, -1196199),
-
-    -- teleportPositions3
     Vector3.new(-1526063, -1, -1184562),
     Vector3.new(-1566373, -1, -1171510),
     Vector3.new(-1606212, -1, -1157044),
@@ -102,8 +100,6 @@ for _, pos in ipairs({
     Vector3.new(-2332825, -1, -379336),
     Vector3.new(-2344573, -1, -33860),
     Vector3.new(-2354865, -1, -297522),
-
-    -- teleportPositions4
     Vector3.new(-2363694, -1, -256091),
     Vector3.new(-2371095, -1, -214353),
     Vector3.new(-2377058, -1, -172401),
@@ -133,8 +129,6 @@ for _, pos in ipairs({
     Vector3.new(-2089231, 4, 772295),
     Vector3.new(-2060919, 4, 803792),
     Vector3.new(-2031504, 4, 834316),
-
-    -- teleportPositions5
     Vector3.new(-2001058, 4, 863777),
     Vector3.new(-1969604, 4, 892142),
     Vector3.new(-1937166, 4, 919430),
@@ -165,8 +159,6 @@ for _, pos in ipairs({
     Vector3.new(-941781, 4, 1168649),
     Vector3.new(-900329, 4, 1159857),
     Vector3.new(-859191, 4, 1149648),
-
-    -- teleportPositions6
     Vector3.new(-818447, 4, 1138010),
     Vector3.new(-778141, 4, 1124967),
     Vector3.new(-738310, 4, 1110502),
@@ -203,28 +195,86 @@ for _, pos in ipairs({
     Vector3.new(37018, 4, 83666),
     Vector3.new(40015, 4, 41402),
     Vector3.new(41388, 4, 3153),
-}) do
-    table.insert(teleportPositions, pos)
+}
+
+-- Function to teleport the character through the chain
+local function teleportChain(character)
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    for _, pos in ipairs(teleportPositions) do
+        rootPart.CFrame = CFrame.new(pos)
+        task.wait(waitBetweenTeleports)
+    end
 end
 
-local canTeleport = true
+-- Setup teleport chain detection loop
+local teleportCooldown = false
 
 RunService.RenderStepped:Connect(function()
-    local currentPosition = rootPart.Position
-    local distance = (currentPosition - targetPosition).Magnitude
+    if teleportCooldown then return end
+    local character = player.Character
+    if not character then return end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
 
-    if distance <= detectionRadius and canTeleport then
-        canTeleport = false
-        print("Player near target! Waiting 5 seconds before teleport chain...")
+    local distance = (rootPart.Position - detectionCenter).Magnitude
+    if distance <= detectionRadius then
+        teleportCooldown = true
+        task.wait(waitBeforeTeleport)
+        teleportChain(character)
+        teleportCooldown = false
+    end
+end)
 
-        task.delay(5, function()
-            for _, pos in ipairs(teleportPositions) do
-                rootPart.CFrame = CFrame.new(pos)
-                task.wait(0.02)
+-- Create GUI button
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGui"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 140, 0, 50)
+button.Position = UDim2.new(0, 50, 0, 50)
+button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Text = "Start"
+button.Parent = screenGui
+button.AutoButtonColor = true
+
+-- Make button draggable
+local dragging = false
+local dragInput, mousePos, framePos
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = button.Position
+        input.Changed:Connect(function()
+            if inpuSetupsInputState == Enum.UserInputState.End then
+                dragging = Connect
             end
-            print("Teleportation chain complete!")
-            wait(cooldownTime)  -- cooldown before next possible teleport
-            canTeleport = true
         end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        button.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Button teleport function
+button.MouseButton1Click:Connect(function()
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = CFrame.new(buttonTeleportCoords)
     end
 end)
