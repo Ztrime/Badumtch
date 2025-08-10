@@ -18,7 +18,7 @@ local buttonTeleportCoords = Vector3.new(41447, 4, 1156)
 local detectionCenter = Vector3.new(41447, 4, 1089)
 local detectionRadius = 5
 local waitBeforeTeleport = 5
-local waitBetweenTeleports = 0.001
+local waitBetweenTeleports = 0.05
 local waitAfterTeleportChain = 5
 
 -- All teleport chain coordinates (full list)
