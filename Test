@@ -1,0 +1,230 @@
+local targetPosition = Vector3.new(41447, 4, 1089)
+local detectionRadius = 5  -- Trigger radius in studs
+local cooldownTime = 7     -- Time between activations (5 sec wait + some buffer)
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local RunService = game:GetService("RunService")
+
+local teleportPositions = {}
+
+-- Combine all teleport positions in one list for simplicity
+for _, pos in ipairs({
+    -- teleportPositions1
+    Vector3.new(41541, 4, -947),
+    Vector3.new(41453, -1, -43303),
+    Vector3.new(40024, -1, -85669),
+    Vector3.new(37113, -1, -127926),
+    Vector3.new(32729, -1, -170069),
+    Vector3.new(26880, -1, -212046),
+    Vector3.new(19550, -1, -253778),
+    Vector3.new(10780, -1, -295240),
+    Vector3.new(567, -1, -336342),
+    Vector3.new(-11068, -1, -377082),
+    Vector3.new(-24124, -1, -417398),
+    Vector3.new(-38571, -1, -457231),
+    Vector3.new(-54405, -1, -496529),
+    Vector3.new(-71602, -1, -535269),
+    Vector3.new(-90150, -1, -573356),
+    Vector3.new(-109991, -1, -610781),
+    Vector3.new(-131140, -1, -647517),
+    Vector3.new(-153542, -1, -683494),
+    Vector3.new(-177227, -1, -718608),
+    Vector3.new(-202105, -1, -752929),
+    Vector3.new(-228146, -1, -786335),
+    Vector3.new(-255348, -1, -818826),
+    Vector3.new(-283671, -1, -850339),
+    Vector3.new(-313071, -1, -880843),
+    Vector3.new(-343523, -1, -910322),
+    Vector3.new(-374982, -1, -938700),
+    Vector3.new(-407423, -1, -965950),
+    Vector3.new(-440785, -1, -992077),
+    Vector3.new(-475033, -1, -1017005),
+    Vector3.new(-510134, -1, -1040739),
+    Vector3.new(-546056, -1, -1063243),
+    Vector3.new(-582720, -1, -1084472),
+    Vector3.new(-620102, -1, -1104398),
+    Vector3.new(-658191, -1, -1122995),
+
+    -- teleportPositions2
+    Vector3.new(-696861, -1, -1140269),
+    Vector3.new(-736133, -1, -1156191),
+    Vector3.new(-775939, -1, -1170707),
+    Vector3.new(-816228, -1, -1183859),
+    Vector3.new(-856943, -1, -1195579),
+    Vector3.new(-898049, -1, -1205867),
+    Vector3.new(-939492, -1, -1214693),
+    Vector3.new(-981209, -1, -1222102),
+    Vector3.new(-1023168, -1, -1228033),
+    Vector3.new(-1065307, -1, -1232541),
+    Vector3.new(-1107579, -1, -1235536),
+    Vector3.new(-1149911, -1, -1237041),
+    Vector3.new(-1192299, -1, -1237070),
+    Vector3.new(-1234623, -1, -1235636),
+    Vector3.new(-1276911, -1, -1232725),
+    Vector3.new(-1319049, -1, -1228340),
+    Vector3.new(-1361001, -1, -1222487),
+    Vector3.new(-1402736, -1, -1215172),
+    Vector3.new(-1444192, -1, -1206406),
+    Vector3.new(-1485317, -1, -1196199),
+
+    -- teleportPositions3
+    Vector3.new(-1526063, -1, -1184562),
+    Vector3.new(-1566373, -1, -1171510),
+    Vector3.new(-1606212, -1, -1157044),
+    Vector3.new(-1645518, -1, -1141201),
+    Vector3.new(-1684232, -1, -1124013),
+    Vector3.new(-1722342, -1, -1105477),
+    Vector3.new(-1759761, -1, -1085579),
+    Vector3.new(-1796491, -1, -1064470),
+    Vector3.new(-1832461, -1, -1042052),
+    Vector3.new(-1867600, -1, -1018395),
+    Vector3.new(-1901900, -1, -993520),
+    Vector3.new(-1935333, -1, -967444),
+    Vector3.new(-1967832, -1, -940236),
+    Vector3.new(-1999347, -1, -911922),
+    Vector3.new(-2029832, -1, -882526),
+    Vector3.new(-2059318, -1, -852092),
+    Vector3.new(-2087695, -1, -820625),
+    Vector3.new(-2114974, -1, -788169),
+    Vector3.new(-2141076, -1, -754810),
+    Vector3.new(-2165999, -1, -720540),
+    Vector3.new(-2189729, -1, -685434),
+    Vector3.new(-2212258, -1, -649540),
+    Vector3.new(-2233467, -1, -612842),
+    Vector3.new(-2253386, -1, -575479),
+    Vector3.new(-2272031, -1, -537394),
+    Vector3.new(-2289241, -1, -498695),
+    Vector3.new(-2305171, -1, -459413),
+    Vector3.new(-2319689, -1, -419609),
+    Vector3.new(-2332825, -1, -379336),
+    Vector3.new(-2344573, -1, -33860),
+    Vector3.new(-2354865, -1, -297522),
+
+    -- teleportPositions4
+    Vector3.new(-2363694, -1, -256091),
+    Vector3.new(-2371095, -1, -214353),
+    Vector3.new(-2377058, -1, -172401),
+    Vector3.new(-2381510, -1, -130256),
+    Vector3.new(-2384509, -1, -88006),
+    Vector3.new(-2386031, -1, -45636),
+    Vector3.new(-2386076, -1, -3264),
+    Vector3.new(-2384640, -1, 39088),
+    Vector3.new(-2381728, -1, 81335),
+    Vector3.new(-2377342, 4, 123531),
+    Vector3.new(-2371473, 4, 165470),
+    Vector3.new(-2364173, 4, 207187),
+    Vector3.new(-2355374, 4, 248654),
+    Vector3.new(-2345169, 4, 289766),
+    Vector3.new(-2333543, 4, 330515),
+    Vector3.new(-2320486, 4, 370845),
+    Vector3.new(-2306008, 4, 410663),
+    Vector3.new(-2290177, 4, 449974),
+    Vector3.new(-2272991, 4, 488687),
+    Vector3.new(-2254434, 4, 526794),
+    Vector3.new(-2234610, 4, 564226),
+    Vector3.new(-2213461, 4, 600946),
+    Vector3.new(-2191024, 4, 636919),
+    Vector3.new(-2167383, 4, 672058),
+    Vector3.new(-2142493, 4, 706358),
+    Vector3.new(-2116455, 4, 739782),
+    Vector3.new(-2089231, 4, 772295),
+    Vector3.new(-2060919, 4, 803792),
+    Vector3.new(-2031504, 4, 834316),
+
+    -- teleportPositions5
+    Vector3.new(-2001058, 4, 863777),
+    Vector3.new(-1969604, 4, 892142),
+    Vector3.new(-1937166, 4, 919430),
+    Vector3.new(-1903793, 4, 945531),
+    Vector3.new(-1869535, 4, 970477),
+    Vector3.new(-1834428, 4, 994206),
+    Vector3.new(-1798522, 4, 1016729),
+    Vector3.new(-1761821, 4, 1037930),
+    Vector3.new(-1724451, 4, 1057837),
+    Vector3.new(-1686370, 4, 1076450),
+    Vector3.new(-1647692, 4, 1093742),
+    Vector3.new(-1608425, 4, 1109656),
+    Vector3.new(-1568620, 4, 1124182),
+    Vector3.new(-1528329, 4, 1137309),
+    Vector3.new(-1487605, 4, 114903),
+    Vector3.new(-1446485, 4, 1159327),
+    Vector3.new(-1405057, 4, 1168158),
+    Vector3.new(-1363335, 4, 1175572),
+    Vector3.new(-1321375, 4, 1181498),
+    Vector3.new(-1279221, 4, 1185989),
+    Vector3.new(-1236976, 4, 1188982),
+    Vector3.new(-1194629, 4, 1190514),
+    Vector3.new(-1152253, 4, 1190547),
+    Vector3.new(-1109904, 4, 1189107),
+    Vector3.new(-1067610, 4, 1186178),
+    Vector3.new(-1025474, 4, 1181793),
+    Vector3.new(-983512, 4, 1175947),
+    Vector3.new(-941781, 4, 1168649),
+    Vector3.new(-900329, 4, 1159857),
+    Vector3.new(-859191, 4, 1149648),
+
+    -- teleportPositions6
+    Vector3.new(-818447, 4, 1138010),
+    Vector3.new(-778141, 4, 1124967),
+    Vector3.new(-738310, 4, 1110502),
+    Vector3.new(-699010, 4, 1094666),
+    Vector3.new(-660264, 4, 1077483),
+    Vector3.new(-622176, 4, 1058890),
+    Vector3.new(-584738, 4, 1039057),
+    Vector3.new(-548005, 4, 1017923),
+    Vector3.new(-512060, 4, 995494),
+    Vector3.new(-476908, 4, 971825),
+    Vector3.new(-442603, 4, 946949),
+    Vector3.new(-409206, 4, 920888),
+    Vector3.new(-376705, 4, 893677),
+    Vector3.new(-345182, 4, 865378),
+    Vector3.new(-314673, 4, 83597),
+    Vector3.new(-285210, 4, 805495),
+    Vector3.new(-256818, 4, 774050),
+    Vector3.new(-229548, 4, 741622),
+    Vector3.new(-203435, 4, 708247),
+    Vector3.new(-178500, 4, 673992),
+    Vector3.new(-154738, 4, 638880),
+    Vector3.new(-132457, 4, 602860),
+    Vector3.new(-91093, 4, 528907),
+    Vector3.new(-72499, 4, 490820),
+    Vector3.new(-55230, 4, 452125),
+    Vector3.new(-39320, 4, 412866),
+    Vector3.new(-24775, 4, 373049),
+    Vector3.new(-11657, 4, 332771),
+    Vector3.new(73, 4, 292047),
+    Vector3.new(10368, 4, 250942),
+    Vector3.new(19202, 4, 209482),
+    Vector3.new(26620, 4, 167766),
+    Vector3.new(32542, 4, 125817),
+    Vector3.new(37018, 4, 83666),
+    Vector3.new(40015, 4, 41402),
+    Vector3.new(41388, 4, 3153),
+}) do
+    table.insert(teleportPositions, pos)
+end
+
+local canTeleport = true
+
+RunService.RenderStepped:Connect(function()
+    local currentPosition = rootPart.Position
+    local distance = (currentPosition - targetPosition).Magnitude
+
+    if distance <= detectionRadius and canTeleport then
+        canTeleport = false
+        print("Player near target! Waiting 5 seconds before teleport chain...")
+
+        task.delay(5, function()
+            for _, pos in ipairs(teleportPositions) do
+                rootPart.CFrame = CFrame.new(pos)
+                task.wait(0.02)
+            end
+            print("Teleportation chain complete!")
+            wait(cooldownTime)  -- cooldown before next possible teleport
+            canTeleport = true
+        end)
+    end
+end)
