@@ -2,7 +2,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TeleportService = game:GetServicegameleportService")
+local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
@@ -19,7 +19,7 @@ local detectionCenter = Vector3.new(41447, 4, 1089)
 local detectionRadius = 5
 local waitBeforeTeleport = 5
 local waitBetweenTeleports = 0.02
-local waitAfterTeleportChain = 2
+local waitAfterTeleportChain = 5
 
 -- All teleport chain coordinates (full list)
 local teleportPositions = {
@@ -288,11 +288,11 @@ screenGui.Name = "TeleportGui"
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 70, 0, 50)
+button.Size = UDim2.new(0, 180, 0, 50)
 button.Position = UDim2.new(0, 50, 0, 50)
 button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Text = "Start"
+button.Text = "Teleport to (41447, 4, 1156)"
 button.Parent = screenGui
 button.AutoButtonColor = true
 
