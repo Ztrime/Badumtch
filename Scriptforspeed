@@ -13,7 +13,7 @@ local player = Players.LocalPlayer
 local placeId = 13796645198
 
 -- Config
-local immediateTeleport = Vector3.new(237, 4, 220)
+local immediateTeleport = Vector3.new(41447, 4, 1156)
 local buttonTeleportCoords = Vector3.new(41447, 4, 1156)
 local detectionCenter = Vector3.new(41447, 4, 1089)
 local detectionRadius = 5
